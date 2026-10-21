@@ -130,6 +130,19 @@ dialog::backdrop{background:rgba(43,33,24,.45);backdrop-filter:blur(2px)}
 .inline-edit{display:flex;gap:8px;align-items:center}
 .inline-edit input{width:110px;font:inherit;font-size:.86rem;padding:6px 9px;border:1px solid var(--line);border-radius:8px}
 .mini-note{font-size:.74rem;color:var(--muted);margin-top:10px}
+.sync-pill{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;padding:5px 10px;border-radius:999px;background:#efe6d5;color:#7a6b5a;white-space:nowrap}
+.sync-pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sync-pill.ok{background:var(--green-soft);color:var(--green)}
+.sync-pill.ing{background:var(--amber-soft);color:var(--amber)}
+.sync-pill.err{background:var(--red-soft);color:var(--red)}
+.sync-pill.off{background:#efe6d5;color:#7a6b5a}
+.backend-panel{border:2px solid var(--brand-soft);background:linear-gradient(180deg,#f7faf2,#fffdf8)}
+.backend-panel .panel-head{background:var(--brand-soft)}
+.steps{counter-reset:step;list-style:none;display:flex;flex-direction:column;gap:12px}
+.steps li{counter-increment:step;position:relative;padding-left:38px;font-size:.86rem;line-height:1.5}
+.steps li::before{content:counter(step);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+.steps code{background:#f3ecdd;padding:2px 6px;border-radius:5px;font-size:.8rem;word-break:break-all}
+.steps a{color:var(--brand-dark);font-weight:700}
 html{-webkit-text-size-adjust:100%}
 @media(max-width:720px){
   :root{font-size:15px}
@@ -140,6 +153,8 @@ html{-webkit-text-size-adjust:100%}
   .logo p{display:none}
   .hdr-actions{gap:6px}
   .hdr-actions .btn{padding:7px 10px;font-size:.72rem}
+  .sync-pill{font-size:.62rem;padding:4px 8px;order:-1;width:100%;justify-content:center}
+  .steps li{font-size:.8rem}
   nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);border-bottom:none;padding:0;z-index:60;justify-content:space-around;box-shadow:0 -2px 12px rgba(74,61,49,.08);padding-bottom:env(safe-area-inset-bottom,0);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   nav button{flex:1;min-width:0;padding:9px 2px 8px;font-size:.62rem;font-weight:700;letter-spacing:-.2px;border-bottom:none;border-top:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.15;text-align:center}
   nav button .nav-ico{font-size:1.05rem;line-height:1;display:block}
@@ -217,6 +232,7 @@ html{-webkit-text-size-adjust:100%}
       </div>
     </div>
     <div class="hdr-actions">
+      <span id="syncStatus" class="sync-pill" title="Status da sincronização"></span>
       <button class="btn sm" onclick="exportarJSON()">Exportar backup</button>
       <button class="btn sm" onclick="document.getElementById('importFile').click()">Importar</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarJSON(this)">
@@ -353,7 +369,7 @@ html{-webkit-text-size-adjust:100%}
     <div class="panel">
       <div class="panel-head"><h3>Seus dados</h3></div>
       <div class="panel-body">
-        <p style="font-size:.86rem;color:var(--muted);margin-bottom:14px">Tudo fica salvo neste navegador (protótipo). Use o backup para levar os dados para outro computador ou guardar cópia.</p>
+        <p style="font-size:.86rem;color:var(--muted);margin-bottom:14px">Sem banco compartilhado, cada aparelho guarda sua própria cópia. Configure o backend acima para sincronizar. O backup `.json` serve para cópia de segurança.</p>
         <div class="form-actions" style="margin:0">
           <button class="btn" onclick="exportarJSON()">Exportar backup (.json)</button>
           <button class="btn" onclick="document.getElementById('importFile').click()">Importar backup</button>
@@ -362,13 +378,39 @@ html{-webkit-text-size-adjust:100%}
       </div>
     </div>
   </div>
+  <div class="panel backend-panel">
+    <div class="panel-head"><h3>Banco de dados compartilhado</h3><span id="backendBadge" class="pill gray">Não configurado</span></div>
+    <div class="panel-body">
+      <p style="font-size:.88rem;margin-bottom:14px">Para duas pessoas verem os mesmos dados, conectem o site a uma planilha do Google. É gratuito e os dados ficam na sua conta.</p>
+      <div class="formgrid">
+        <div class="field" style="grid-column:1/-1">
+          <label>URL do backend (Apps Script)</label>
+          <input type="url" id="backendUrl" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:.82rem">
+          <div class="hint">Cole aqui a URL gerada ao implantar o Apps Script (passo 4 abaixo)</div>
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:12px">
+        <button class="btn primary" onclick="salvarBackend()">Salvar e conectar</button>
+        <button class="btn" onclick="testarBackend()">Testar conexão</button>
+        <button class="btn danger" onclick="desconectarBackend()">Desconectar</button>
+      </div>
+      <div id="backendMsg" class="mini-note" style="margin-top:10px"></div>
+      <ol class="steps" style="margin-top:20px">
+        <li>Crie uma planilha nova no Google Drive (pode chamar <b>Feito de Nós — Dados</b>). Compartilhe com a outra pessoa (Leitura e escrita).</li>
+        <li>Nela, abra <b>Extensões → Apps Script</b>.</li>
+        <li>Apague o código que já estiver lá e cole o arquivo <code>backend-apps-script.js</code> (está no GitHub do projeto) ou o código abaixo.<br><button class="btn sm" style="margin-top:6px" onclick="copiarScript()">Copiar código do backend</button></li>
+        <li>Clique em <b>Deploy → Nova implantação</b>. Tipo: <b>Aplicativo da Web</b>. Executar como: <b>Eu</b>. Quem tem acesso: <b>Qualquer pessoa</b>. Copie a URL gerada.</li>
+        <li>Cole a URL acima e clique em <b>Salvar e conectar</b>. Pronto — os dois aparelhos passam a ver os mesmos dados.</li>
+      </ol>
+    </div>
+  </div>
   <div class="panel">
     <div class="panel-head"><h3>Listas (opções dos menus)</h3></div>
     <div class="panel-body" id="listasUI"></div>
   </div>
 </section>
 
-<p class="footer-note">Protótipo — Feito de Nós · dados salvos localmente no navegador</p>
+<p class="footer-note">Feito de Nós · Desenvolvido por Weslley Silva</p>
 </main>
 
 <dialog id="dlgVenda">
@@ -532,15 +574,76 @@ function seedFicha(state){
 }
 
 let S;
+let BACKEND_URL = localStorage.getItem('feito-de-nos-backend') || '';
+let _saveTimer = null;
+let _syncing = false;
+
+function setSyncStatus(state){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  el.className = 'sync-pill ' + state;
+  const map = {ok:'Sincronizado', ing:'Salvando...', err:'Erro ao salvar', off:'Só neste aparelho', load:'Carregando...'};
+  el.textContent = map[state] || '';
+  el.style.display = BACKEND_URL || state==='off' ? '' : 'none';
+}
+
+async function syncLoad(){
+  if(!BACKEND_URL){ setSyncStatus('off'); return false; }
+  setSyncStatus('load');
+  try{
+    const r = await fetch(BACKEND_URL);
+    const j = await r.json();
+    if(j.ok && j.data){
+      S = j.data;
+      if(!S.listas) S.listas = seed().listas;
+      localStorage.setItem(KEY, JSON.stringify(S));
+      renderAll();
+      setSyncStatus('ok');
+      return true;
+    }
+    setSyncStatus('ok');
+    return false;
+  }catch(e){
+    setSyncStatus('err');
+    return false;
+  }
+}
+
+function scheduleSync(){
+  if(!BACKEND_URL) return;
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(syncSave, 700);
+}
+
+async function syncSave(){
+  if(!BACKEND_URL || _syncing) return;
+  _syncing = true;
+  setSyncStatus('ing');
+  try{
+    const r = await fetch(BACKEND_URL, {method:'POST', body: JSON.stringify({data:S})});
+    const j = await r.json();
+    setSyncStatus(j.ok ? 'ok' : 'err');
+  }catch(e){
+    setSyncStatus('err');
+  }finally{
+    _syncing = false;
+  }
+}
+
 function load(){
   try{
     const raw = localStorage.getItem(KEY);
-    if(raw){ S = JSON.parse(raw); return; }
+    if(raw){ S = JSON.parse(raw); }
   }catch(e){}
-  S = seedFicha(seed());
-  save();
+  if(!S){ S = seedFicha(seed()); }
+  if(!S.listas) S.listas = seed().listas;
+  localStorage.setItem(KEY, JSON.stringify(S));
+  syncLoad();
 }
-function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(S));
+  scheduleSync();
+}
 
 function custoUnitInsumo(i){
   if(i==null) return 0;
@@ -992,6 +1095,15 @@ function excluirInsumo(id){
 
 function renderAjustes(){
   document.getElementById('margemAlvo').value = (S.margemAlvo*100).toLocaleString('pt-BR',{maximumFractionDigits:1});
+  document.getElementById('backendUrl').value = BACKEND_URL || '';
+  const badge = document.getElementById('backendBadge');
+  if(BACKEND_URL){
+    badge.className = 'pill green';
+    badge.textContent = 'Conectado';
+  }else{
+    badge.className = 'pill gray';
+    badge.textContent = 'Não configurado';
+  }
   const defs = [
     ['canal','Canal'],['formaPagamento','Forma de pagamento'],['statusPagamento','Status do pagamento'],
     ['statusPedido','Status do pedido'],['categoriaInsumo','Categoria de insumo'],['statusProduto','Status do produto']
@@ -1041,6 +1153,135 @@ function addLista(k){
 function removerLista(k,idx){
   if(!confirm('Remover esta opção da lista?')) return;
   S.listas[k].splice(idx,1); save(); renderAjustes(); toast('Opção removida');
+}
+
+function salvarBackend(){
+  const url = document.getElementById('backendUrl').value.trim();
+  const msg = document.getElementById('backendMsg');
+  if(url && !url.startsWith('https://script.google.com/')){
+    msg.textContent = 'A URL deve começar com https://script.google.com/';
+    msg.style.color = 'var(--red)';
+    return;
+  }
+  BACKEND_URL = url;
+  if(url){ localStorage.setItem('feito-de-nos-backend', url); }
+  else { localStorage.removeItem('feito-de-nos-backend'); }
+  renderAjustes();
+  if(url){
+    msg.textContent = 'Conectando...';
+    msg.style.color = 'var(--muted)';
+    (async()=>{
+      const temRemoto = await syncLoad();
+      if(!temRemoto){
+        await syncSave();
+      }
+      msg.textContent = 'Conectado! Os dados serão sincronizados a cada alteração.';
+      msg.style.color = 'var(--green)';
+    })();
+  }else{
+    msg.textContent = 'Desconectado. Os dados ficam só neste aparelho.';
+    msg.style.color = 'var(--muted)';
+    setSyncStatus('off');
+  }
+}
+async function testarBackend(){
+  const url = document.getElementById('backendUrl').value.trim() || BACKEND_URL;
+  const msg = document.getElementById('backendMsg');
+  if(!url){ msg.textContent = 'Cole uma URL primeiro.'; msg.style.color = 'var(--red)'; return; }
+  msg.textContent = 'Testando...';
+  msg.style.color = 'var(--muted)';
+  try{
+    const r = await fetch(url);
+    const j = await r.json();
+    if(j.ok){ msg.textContent = 'Conexão OK! O backend respondeu corretamente.'; msg.style.color = 'var(--green)'; }
+    else { msg.textContent = 'Erro do backend: ' + (j.error||'desconhecido'); msg.style.color = 'var(--red)'; }
+  }catch(e){
+    msg.textContent = 'Falha ao acessar. Verifique a URL e se o deploy foi feito como "Qualquer pessoa".';
+    msg.style.color = 'var(--red)';
+  }
+}
+function desconectarBackend(){
+  if(!confirm('Desconectar o banco compartilhado? Os dados continuarão só neste aparelho.')) return;
+  BACKEND_URL = '';
+  localStorage.removeItem('feito-de-nos-backend');
+  renderAjustes(); setSyncStatus('off');
+  document.getElementById('backendMsg').textContent = 'Desconectado.';
+}
+function copiarScript(){
+  const codigo = `const SHEET_NAME = 'DB';
+
+function doGet() {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+    const data = loadData_();
+    return json_({ ok: true, data: data });
+  } catch (err) {
+    return json_({ ok: false, error: String(err) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+    const body = JSON.parse(e.postData.contents);
+    saveData_(body.data);
+    return json_({ ok: true });
+  } catch (err) {
+    return json_({ ok: false, error: String(err) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) {
+    sh = ss.insertSheet(SHEET_NAME);
+    sh.hideSheet();
+  }
+  return sh;
+}
+
+function loadData_() {
+  const sh = getSheet_();
+  const lastRow = sh.getLastRow();
+  if (lastRow < 1) return null;
+  const values = sh.getRange(1, 1, lastRow, 2).getValues();
+  let json = '';
+  for (let i = 0; i < values.length; i++) {
+    if (values[i][0] === 'chunk') json += values[i][1];
+  }
+  return json ? JSON.parse(json) : null;
+}
+
+function saveData_(data) {
+  const json = JSON.stringify(data);
+  const sh = getSheet_();
+  sh.clear();
+  const CHUNK = 45000;
+  const rows = [];
+  for (let i = 0; i < json.length; i += CHUNK) {
+    rows.push(['chunk', json.slice(i, i + CHUNK)]);
+  }
+  if (rows.length) {
+    sh.getRange(1, 1, rows.length, 2).setValues(rows);
+  }
+}`;
+  navigator.clipboard.writeText(codigo).then(()=>{
+    toast('Código copiado! Cole no Apps Script.');
+  }).catch(()=>{
+    prompt('Copie o código abaixo:', codigo);
+  });
 }
 
 function exportarJSON(){
