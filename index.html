@@ -388,19 +388,28 @@ html{-webkit-text-size-adjust:100%}
           <input type="url" id="backendUrl" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:.82rem">
           <div class="hint">Cole aqui a URL gerada ao implantar o Apps Script (passo 4 abaixo)</div>
         </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Chave de acesso (opcional)</label>
+          <input type="text" id="backendKey" placeholder="Deixe em branco se o Apps Script estiver sem chave" style="font-size:.82rem">
+          <div class="hint">É a mesma chave colocada no Apps Script (<code>SECRET_KEY</code>). Protege o banco caso a URL vaze.</div>
+        </div>
       </div>
       <div class="form-actions" style="margin-top:12px">
         <button class="btn primary" onclick="salvarBackend()">Salvar e conectar</button>
         <button class="btn" onclick="testarBackend()">Testar conexão</button>
+        <button class="btn" onclick="atualizarBackend()">Atualizar agora</button>
+        <button class="btn" onclick="enviarDadosAoBackend()">Enviar dados deste aparelho</button>
         <button class="btn danger" onclick="desconectarBackend()">Desconectar</button>
       </div>
       <div id="backendMsg" class="mini-note" style="margin-top:10px"></div>
+      <div id="backendLast" class="mini-note" style="margin-top:4px"></div>
       <ol class="steps" style="margin-top:20px">
-        <li>Crie uma planilha nova no Google Drive (pode chamar <b>Feito de Nós — Dados</b>). Compartilhe com a outra pessoa (Leitura e escrita).</li>
+        <li>Crie uma planilha nova no Google Drive (pode chamar <b>Feito de Nós — Dados</b>).</li>
         <li>Nela, abra <b>Extensões → Apps Script</b>.</li>
         <li>Apague o código que já estiver lá e cole o arquivo <code>backend-apps-script.js</code> (está no GitHub do projeto) ou o código abaixo.<br><button class="btn sm" style="margin-top:6px" onclick="copiarScript()">Copiar código do backend</button></li>
         <li>Clique em <b>Deploy → Nova implantação</b>. Tipo: <b>Aplicativo da Web</b>. Executar como: <b>Eu</b>. Quem tem acesso: <b>Qualquer pessoa</b>. Copie a URL gerada.</li>
-        <li>Cole a URL acima e clique em <b>Salvar e conectar</b>. Pronto — os dois aparelhos passam a ver os mesmos dados.</li>
+        <li>Cole a URL acima e clique em <b>Salvar e conectar</b>. Se o banco estiver vazio, clique em <b>Enviar dados deste aparelho</b>.</li>
+        <li>Para o outro aparelho já abrir conectado, cole a URL no <code>config.js</code> (no GitHub) ou compartilhe o link <code>https://feito-de-nos-site.vercel.app?backend=SUA_URL</code>.</li>
       </ol>
     </div>
   </div>
@@ -502,6 +511,7 @@ html{-webkit-text-size-adjust:100%}
 
 <div class="toast" id="toast"></div>
 
+<script src="config.js"></script>
 <script>
 const KEY = 'feito-de-nos-v1';
 const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -574,60 +584,141 @@ function seedFicha(state){
 }
 
 let S;
-let BACKEND_URL = localStorage.getItem('feito-de-nos-backend') || '';
+const CFG = window.FN_CONFIG || {};
+const KEY_BACKEND = 'feito-de-nos-backend';
+const KEY_ACESSO = 'feito-de-nos-acesso';
+let BACKEND_URL = resolveBackendUrl();
+let ACCESS_KEY = resolveAccessKey();
 let _saveTimer = null;
+let _retryTimer = null;
+let _pollTimer = null;
 let _syncing = false;
+let _pendingSave = false;
+let _dirty = false;
+let _lastSync = null;
+let _lastFingerprint = '';
+
+function qs(name){
+  try { return (new URLSearchParams(location.search).get(name) || '').trim(); } catch(e){ return ''; }
+}
+function resolveBackendUrl(){
+  const param = qs('backend');
+  if(param) return param;
+  const salvo = (localStorage.getItem(KEY_BACKEND) || '').trim();
+  if(salvo) return salvo;
+  return (CFG.backendUrl || '').trim();
+}
+function resolveAccessKey(){
+  const param = qs('key');
+  if(param) return param;
+  const salvo = (localStorage.getItem(KEY_ACESSO) || '').trim();
+  if(salvo) return salvo;
+  return (CFG.accessKey || '').trim();
+}
+function fingerprint(obj){
+  const s = JSON.stringify(obj || {});
+  let h = 0;
+  for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) | 0; }
+  return s.length + ':' + h;
+}
+function backendUrlComChave(){
+  if(!ACCESS_KEY) return BACKEND_URL;
+  return BACKEND_URL + (BACKEND_URL.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(ACCESS_KEY);
+}
 
 function setSyncStatus(state){
   const el = document.getElementById('syncStatus');
   if(!el) return;
   el.className = 'sync-pill ' + state;
-  const map = {ok:'Sincronizado', ing:'Salvando...', err:'Erro ao salvar', off:'Só neste aparelho', load:'Carregando...'};
+  const map = {ok:'Sincronizado', ing:'Salvando...', err:'Erro ao sincronizar', off:'Só neste aparelho', load:'Carregando...'};
   el.textContent = map[state] || '';
+  el.title = _lastSync ? ('Última sincronização: ' + _lastSync.toLocaleTimeString('pt-BR')) : 'Status da sincronização';
   el.style.display = BACKEND_URL || state==='off' ? '' : 'none';
 }
 
-async function syncLoad(){
-  if(!BACKEND_URL){ setSyncStatus('off'); return false; }
-  setSyncStatus('load');
+async function syncLoad(opts){
+  opts = opts || {};
+  if(!BACKEND_URL){ setSyncStatus('off'); return 'off'; }
+  if(!opts.silent) setSyncStatus('load');
   try{
-    const r = await fetch(BACKEND_URL);
+    const r = await fetch(backendUrlComChave(), {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
-    if(j.ok && j.data){
-      S = j.data;
-      if(!S.listas) S.listas = seed().listas;
-      localStorage.setItem(KEY, JSON.stringify(S));
-      renderAll();
+    if(!j.ok) throw new Error(j.error || 'resposta invalida');
+    _lastSync = new Date();
+    if(!j.data){
       setSyncStatus('ok');
-      return true;
+      return 'empty';
     }
+    const remoto = j.data;
+    const remotoAtualizado = Number(remoto.__updatedAt || j.updatedAt || 0);
+    const localAtualizado = Number((S && S.__updatedAt) || 0);
+    const mudou = fingerprint(remoto) !== _lastFingerprint;
+    if(_dirty || (localAtualizado && localAtualizado > remotoAtualizado)){
+      setSyncStatus('ing');
+      scheduleSync();
+      return 'local';
+    }
+    S = remoto;
+    if(!S.listas) S.listas = seed().listas;
+    localStorage.setItem(KEY, JSON.stringify(S));
+    _lastFingerprint = fingerprint(S);
+    renderAll();
+    if(opts.silent && mudou) toast('Dados atualizados');
     setSyncStatus('ok');
-    return false;
+    return 'ok';
   }catch(e){
     setSyncStatus('err');
-    return false;
+    return 'error';
   }
 }
 
 function scheduleSync(){
   if(!BACKEND_URL) return;
+  _dirty = true;
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(syncSave, 700);
 }
+function scheduleRetry(){
+  clearTimeout(_retryTimer);
+  _retryTimer = setTimeout(()=>{ if(_dirty && BACKEND_URL) syncSave(); }, 5000);
+}
 
 async function syncSave(){
-  if(!BACKEND_URL || _syncing) return;
+  if(!BACKEND_URL){ setSyncStatus('off'); return false; }
+  if(_syncing){ _pendingSave = true; return false; }
   _syncing = true;
   setSyncStatus('ing');
   try{
-    const r = await fetch(BACKEND_URL, {method:'POST', body: JSON.stringify({data:S})});
+    const r = await fetch(BACKEND_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ data:S, updatedAt:Number(S.__updatedAt) || Date.now(), key:ACCESS_KEY })
+    });
     const j = await r.json();
-    setSyncStatus(j.ok ? 'ok' : 'err');
+    if(!j.ok) throw new Error(j.error || 'falha ao salvar');
+    _dirty = false;
+    _lastSync = new Date();
+    _lastFingerprint = fingerprint(S);
+    setSyncStatus('ok');
+    return true;
   }catch(e){
     setSyncStatus('err');
+    scheduleRetry();
+    return false;
   }finally{
     _syncing = false;
+    if(_pendingSave){ _pendingSave = false; scheduleSync(); }
   }
+}
+
+function startPolling(){
+  clearInterval(_pollTimer);
+  const seg = Math.max(10, Number(CFG.pollSeconds) || 20);
+  _pollTimer = setInterval(()=>{
+    if(!BACKEND_URL || _syncing || _dirty) return;
+    syncLoad({silent:true});
+  }, seg*1000);
 }
 
 function load(){
@@ -638,9 +729,19 @@ function load(){
   if(!S){ S = seedFicha(seed()); }
   if(!S.listas) S.listas = seed().listas;
   localStorage.setItem(KEY, JSON.stringify(S));
-  syncLoad();
+  _lastFingerprint = fingerprint(S);
+  if(BACKEND_URL){
+    localStorage.setItem(KEY_BACKEND, BACKEND_URL);
+    syncLoad().then(res=>{
+      if(res==='empty') toast('Banco compartilhado vazio - envie os dados em Ajustes');
+      startPolling();
+    });
+  }else{
+    setSyncStatus('off');
+  }
 }
 function save(){
+  S.__updatedAt = Date.now();
   localStorage.setItem(KEY, JSON.stringify(S));
   scheduleSync();
 }
@@ -1095,15 +1196,7 @@ function excluirInsumo(id){
 
 function renderAjustes(){
   document.getElementById('margemAlvo').value = (S.margemAlvo*100).toLocaleString('pt-BR',{maximumFractionDigits:1});
-  document.getElementById('backendUrl').value = BACKEND_URL || '';
-  const badge = document.getElementById('backendBadge');
-  if(BACKEND_URL){
-    badge.className = 'pill green';
-    badge.textContent = 'Conectado';
-  }else{
-    badge.className = 'pill gray';
-    badge.textContent = 'Não configurado';
-  }
+  renderBackendPanel();
   const defs = [
     ['canal','Canal'],['formaPagamento','Forma de pagamento'],['statusPagamento','Status do pagamento'],
     ['statusPedido','Status do pedido'],['categoriaInsumo','Categoria de insumo'],['statusProduto','Status do produto']
@@ -1124,6 +1217,32 @@ function renderAjustes(){
         <button class="btn sm" onclick="addLista('${k}')">+</button>
       </div>
     </div>`).join('')}</div>`;
+}
+function renderBackendPanel(){
+  const urlEl = document.getElementById('backendUrl');
+  if(urlEl && document.activeElement !== urlEl) urlEl.value = BACKEND_URL || '';
+  const keyEl = document.getElementById('backendKey');
+  if(keyEl && document.activeElement !== keyEl) keyEl.value = ACCESS_KEY || '';
+  const badge = document.getElementById('backendBadge');
+  if(badge){
+    if(BACKEND_URL){
+      badge.className = 'pill green';
+      badge.textContent = 'Conectado';
+    }else{
+      badge.className = 'pill gray';
+      badge.textContent = 'Não configurado';
+    }
+  }
+  const last = document.getElementById('backendLast');
+  if(last){
+    last.textContent = _lastSync ? ('Última sincronização: ' + _lastSync.toLocaleTimeString('pt-BR')) : 'Ainda não sincronizou';
+  }
+}
+function backendMsg(texto, cor){
+  const msg = document.getElementById('backendMsg');
+  if(!msg) return;
+  msg.textContent = texto;
+  msg.style.color = cor || 'var(--muted)';
 }
 function contarUso(k,val){
   const mapa = {canal:()=>S.vendas.filter(v=>v.canal===val).length, formaPagamento:()=>S.vendas.filter(v=>v.pagForma===val).length,
@@ -1155,67 +1274,110 @@ function removerLista(k,idx){
   S.listas[k].splice(idx,1); save(); renderAjustes(); toast('Opção removida');
 }
 
-function salvarBackend(){
+async function salvarBackend(){
   const url = document.getElementById('backendUrl').value.trim();
-  const msg = document.getElementById('backendMsg');
+  const key = document.getElementById('backendKey').value.trim();
   if(url && !url.startsWith('https://script.google.com/')){
-    msg.textContent = 'A URL deve começar com https://script.google.com/';
-    msg.style.color = 'var(--red)';
+    backendMsg('A URL deve começar com https://script.google.com/', 'var(--red)');
     return;
   }
   BACKEND_URL = url;
-  if(url){ localStorage.setItem('feito-de-nos-backend', url); }
-  else { localStorage.removeItem('feito-de-nos-backend'); }
+  ACCESS_KEY = key;
+  if(url){ localStorage.setItem(KEY_BACKEND, url); } else { localStorage.removeItem(KEY_BACKEND); }
+  if(key){ localStorage.setItem(KEY_ACESSO, key); } else { localStorage.removeItem(KEY_ACESSO); }
   renderAjustes();
-  if(url){
-    msg.textContent = 'Conectando...';
-    msg.style.color = 'var(--muted)';
-    (async()=>{
-      const temRemoto = await syncLoad();
-      if(!temRemoto){
-        await syncSave();
-      }
-      msg.textContent = 'Conectado! Os dados serão sincronizados a cada alteração.';
-      msg.style.color = 'var(--green)';
-    })();
-  }else{
-    msg.textContent = 'Desconectado. Os dados ficam só neste aparelho.';
-    msg.style.color = 'var(--muted)';
+  if(!url){
+    backendMsg('Desconectado. Os dados ficam só neste aparelho.');
     setSyncStatus('off');
+    return;
   }
+  backendMsg('Conectando...');
+  const res = await syncLoad();
+  if(res==='ok'){
+    backendMsg('Conectado! Agora os dados são compartilhados com os outros aparelhos.', 'var(--green)');
+    startPolling();
+  }else if(res==='empty'){
+    backendMsg('Conectado, mas o banco compartilhado está vazio. Clique em "Enviar dados deste aparelho" para começar.', 'var(--amber)');
+    startPolling();
+  }else if(res==='local'){
+    backendMsg('Conectado! Enviando as alterações deste aparelho para o banco.', 'var(--green)');
+    startPolling();
+  }else{
+    backendMsg('Não consegui acessar o backend. Confira a URL, a chave e se o deploy foi feito como "Qualquer pessoa".', 'var(--red)');
+  }
+}
+async function atualizarBackend(){
+  if(!BACKEND_URL){
+    backendMsg('Nada para atualizar — o backend não está configurado.', 'var(--red)');
+    return;
+  }
+  backendMsg('Buscando novidades...');
+  const res = await syncLoad();
+  if(res==='ok') backendMsg('Atualizado com os dados mais recentes.', 'var(--green)');
+  else if(res==='empty') backendMsg('O banco compartilhado está vazio.', 'var(--amber)');
+  else if(res==='local') backendMsg('Suas alterações locais estão sendo enviadas para o banco.', 'var(--green)');
+  else backendMsg('Falha ao sincronizar. Os dados deste aparelho continuam valendo.', 'var(--red)');
+}
+async function enviarDadosAoBackend(){
+  if(!BACKEND_URL){
+    backendMsg('Cole a URL do backend primeiro.', 'var(--red)');
+    return;
+  }
+  if(!confirm('Isso substitui os dados do banco compartilhado pelos dados deste aparelho. Continuar?')) return;
+  backendMsg('Enviando...');
+  _dirty = true;
+  const ok = await syncSave();
+  backendMsg(
+    ok ? 'Dados enviados. Os aparelhos já conectados passam a ver a mesma coisa.'
+       : 'Falha ao enviar. Confira a URL, a chave e o deploy do Apps Script.',
+    ok ? 'var(--green)' : 'var(--red)'
+  );
 }
 async function testarBackend(){
   const url = document.getElementById('backendUrl').value.trim() || BACKEND_URL;
-  const msg = document.getElementById('backendMsg');
-  if(!url){ msg.textContent = 'Cole uma URL primeiro.'; msg.style.color = 'var(--red)'; return; }
-  msg.textContent = 'Testando...';
-  msg.style.color = 'var(--muted)';
+  const key = document.getElementById('backendKey').value.trim() || ACCESS_KEY;
+  if(!url){ backendMsg('Cole uma URL primeiro.', 'var(--red)'); return; }
+  backendMsg('Testando...');
   try{
-    const r = await fetch(url);
+    const alvo = key ? url + (url.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(key) : url;
+    const r = await fetch(alvo, {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
-    if(j.ok){ msg.textContent = 'Conexão OK! O backend respondeu corretamente.'; msg.style.color = 'var(--green)'; }
-    else { msg.textContent = 'Erro do backend: ' + (j.error||'desconhecido'); msg.style.color = 'var(--red)'; }
+    if(j.ok){
+      backendMsg(j.data
+        ? 'Conexão OK! O banco tem dados (' + Object.keys(j.data).length + ' blocos).'
+        : 'Conexão OK! O backend responde, mas o banco ainda está vazio.', 'var(--green)');
+    }else{
+      backendMsg('Erro do backend: ' + (j.error || 'desconhecido'), 'var(--red)');
+    }
   }catch(e){
-    msg.textContent = 'Falha ao acessar. Verifique a URL e se o deploy foi feito como "Qualquer pessoa".';
-    msg.style.color = 'var(--red)';
+    backendMsg('Falha ao acessar. Verifique a URL, a chave e se o deploy foi feito como "Qualquer pessoa".', 'var(--red)');
   }
 }
 function desconectarBackend(){
   if(!confirm('Desconectar o banco compartilhado? Os dados continuarão só neste aparelho.')) return;
   BACKEND_URL = '';
-  localStorage.removeItem('feito-de-nos-backend');
+  ACCESS_KEY = '';
+  localStorage.removeItem(KEY_BACKEND);
+  localStorage.removeItem(KEY_ACESSO);
+  clearInterval(_pollTimer);
   renderAjustes(); setSyncStatus('off');
-  document.getElementById('backendMsg').textContent = 'Desconectado.';
+  backendMsg('Desconectado.');
 }
 function copiarScript(){
   const codigo = `const SHEET_NAME = 'DB';
+// Opcional: cole aqui uma chave e repita no site (Ajustes > Chave de acesso).
+const SECRET_KEY = '';
 
-function doGet() {
+function doGet(e) {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(20000);
-    const data = loadData_();
-    return json_({ ok: true, data: data });
+    if (!autorizado_(e && e.parameter ? e.parameter.key : '')) {
+      return json_({ ok: false, error: 'Chave de acesso invalida' });
+    }
+    const r = loadData_();
+    return json_({ ok: true, data: r.data, updatedAt: r.updatedAt });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   } finally {
@@ -1228,13 +1390,22 @@ function doPost(e) {
   try {
     lock.waitLock(20000);
     const body = JSON.parse(e.postData.contents);
-    saveData_(body.data);
-    return json_({ ok: true });
+    if (!autorizado_(body.key)) {
+      return json_({ ok: false, error: 'Chave de acesso invalida' });
+    }
+    const ts = Number(body.updatedAt) || Date.now();
+    saveData_(body.data, ts);
+    return json_({ ok: true, updatedAt: ts });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   } finally {
     lock.releaseLock();
   }
+}
+
+function autorizado_(key) {
+  if (!SECRET_KEY) return true;
+  return String(key || '') === String(SECRET_KEY);
 }
 
 function json_(obj) {
@@ -1255,16 +1426,20 @@ function getSheet_() {
 function loadData_() {
   const sh = getSheet_();
   const lastRow = sh.getLastRow();
-  if (lastRow < 1) return null;
+  if (lastRow < 1) return { data: null, updatedAt: 0 };
   const values = sh.getRange(1, 1, lastRow, 2).getValues();
   let json = '';
+  let updatedAt = 0;
   for (let i = 0; i < values.length; i++) {
     if (values[i][0] === 'chunk') json += values[i][1];
+    else if (values[i][0] === 'meta') {
+      try { updatedAt = Number(JSON.parse(values[i][1]).updatedAt || 0); } catch (err) {}
+    }
   }
-  return json ? JSON.parse(json) : null;
+  return { data: json ? JSON.parse(json) : null, updatedAt: updatedAt };
 }
 
-function saveData_(data) {
+function saveData_(data, updatedAt) {
   const json = JSON.stringify(data);
   const sh = getSheet_();
   sh.clear();
@@ -1273,9 +1448,8 @@ function saveData_(data) {
   for (let i = 0; i < json.length; i += CHUNK) {
     rows.push(['chunk', json.slice(i, i + CHUNK)]);
   }
-  if (rows.length) {
-    sh.getRange(1, 1, rows.length, 2).setValues(rows);
-  }
+  rows.push(['meta', JSON.stringify({ updatedAt: updatedAt || Date.now() })]);
+  sh.getRange(1, 1, rows.length, 2).setValues(rows);
 }`;
   navigator.clipboard.writeText(codigo).then(()=>{
     toast('Código copiado! Cole no Apps Script.');
@@ -1305,7 +1479,10 @@ function importarJSON(input){
   r.readAsText(f);
 }
 function resetarDados(){
-  if(!confirm('Isso apaga tudo e restaura os dados de exemplo da planilha. Continuar?')) return;
+  const aviso = BACKEND_URL
+    ? '\n\nAtenção: como o banco compartilhado está conectado, os dados de exemplo vão também para ele.'
+    : '';
+  if(!confirm('Isso apaga tudo e restaura os dados de exemplo da planilha. Continuar?' + aviso)) return;
   S = seedFicha(seed()); save(); renderAll(); toast('Dados restaurados');
 }
 
