@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Feito de Nós — Custos e Vendas</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#8d9b6e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Feito de Nós">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Custos, catálogo e vendas do Feito de Nós, com os dados compartilhados entre os aparelhos.">
 <style>
 :root{
   --bg:#f7f1e6;
@@ -512,6 +521,13 @@ html{-webkit-text-size-adjust:100%}
 <div class="toast" id="toast"></div>
 
 <script src="config.js"></script>
+<script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('/sw.js').catch(function(){});
+    });
+  }
+</script>
 <script>
 const KEY = 'feito-de-nos-v1';
 const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -1487,7 +1503,10 @@ function resetarDados(){
 }
 
 load();
-renderAll();
+// atalho de aba (usado pelos atalhos do PWA): /?tab=vendas
+const tabInicial = qs('tab');
+if(tabInicial && document.getElementById('tab-'+tabInicial)) go(tabInicial);
+else renderAll();
 </script>
 </body>
 </html>

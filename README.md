@@ -16,6 +16,25 @@ pessoas vejam exatamente a mesma coisa** em aparelhos diferentes.
 | `backend-apps-script.js` | Backend (Google Apps Script) que guarda os dados numa planilha |
 | `test/sync.test.mjs` | Teste da sincronização — roda sem navegador |
 
+## Instalar como aplicativo (o "atalho do Google")
+
+O site já é um PWA: dá para instalar e ele abre em janela própria, com ícone,
+sem barra de navegador, e funciona mesmo com internet fraca.
+
+- **Android (Chrome):** abra o site → menu de três pontinhos → **Instalar
+  aplicativo** (ou *Adicionar à tela inicial*).
+- **iPhone/iPad (Safari):** abra o site → botão Compartilhar → **Adicionar à
+  Tela de Início**.
+- **Computador (Chrome/Edge):** na barra de endereço aparece o ícone de
+  instalar, ou menu → **Instalar o Feito de Nós**.
+
+Instalado, ele continua enxergando o mesmo banco compartilhado: mudar no celular
+aparece no computador e vice-versa.
+
+Quem instala pelo atalho pode ir direto para uma aba:
+`https://feito-de-nos-site.vercel.app/?tab=vendas` (também `?tab=catalogo`,
+`?tab=insumos`).
+
 ## Rodar local
 
 Abra o `index.html` no navegador ou sirva a pasta com qualquer servidor estático.

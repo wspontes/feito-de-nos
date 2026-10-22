@@ -6,9 +6,10 @@ import { fileURLToPath } from 'node:url';
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const HTML = path.join(RAIZ, 'index.html');
 const html = fs.readFileSync(HTML, 'utf8');
-const m = html.match(/<script>([\s\S]*?)<\/script>/);
-if (!m) throw new Error('script inline nao encontrado');
-const script = m[1];
+// pega o maior <script> sem src (o app), ignorando blocos pequenos de bootstrap
+const blocos = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+const script = blocos.sort((a, b) => b.length - a.length)[0];
+if (!script) throw new Error('script inline do app nao encontrado');
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
