@@ -10,7 +10,7 @@
  */
 window.FN_CONFIG = {
   // URL do Apps Script (deixe vazio para configurar pelo próprio site)
-  backendUrl: '',
+  backendUrl: 'https://script.google.com/macros/s/AKfycbyvkdyvjOv3_Yn20ojpYAuK-6QlRzJuSlvRKhlIOI3EsA0C9S0HwRsiLKLQcLK86HMu/exec',
 
   // Opcional. Se preencher, o mesmo valor precisa estar no Apps Script
   // (const SECRET_KEY = '...'). Protege o banco caso a URL vaze.
