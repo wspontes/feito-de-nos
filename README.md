@@ -55,9 +55,15 @@ A URL do Apps Script vale como uma senha: quem tiver o link pode ler e
 escrever no banco. Para travar:
 
 1. No Apps Script, preencha `const SECRET_KEY = 'uma senha';`
-2. No site, preencha **Chave de acesso** com a mesma senha (ou `accessKey` no `config.js`).
+2. Faça um novo deploy: **Deploy → Gerenciar implantações → Editar (⋮) →
+   Versão: Nova versão → Implantar**.
+3. No site, preencha **Chave de acesso** com a mesma senha.
 
 Sem a chave certa, o backend responde `Chave de acesso invalida` e não mexe em nada.
+
+> O repositório é público: **não** coloque a senha no `config.js`. Quem digita a
+> chave na tela de Ajustes guarda a senha só naquele aparelho. Para mandar o
+> link já pronto, use `https://feito-de-nos-site.vercel.app?backend=SUA_URL&key=SUA_CHAVE`.
 
 ## Como a sincronização funciona
 
