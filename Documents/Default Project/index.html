@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O ABC das IAs — Domine a IA para Transformar sua Gestão</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6C3AE0;
+            --primary-light: #8B5CF6;
+            --primary-dark: #5221C4;
+            --accent: #F59E0B;
+            --accent-light: #FBBF24;
+            --bg-dark: #0B0F1A;
+            --bg-card: #141929;
+            --bg-card-hover: #1A2035;
+            --text: #E2E8F0;
+            --text-muted: #94A3B8;
+            --border: #1E293B;
+            --gradient-1: linear-gradient(135deg, #6C3AE0, #A855F7);
+            --gradient-2: linear-gradient(135deg, #F59E0B, #F97316);
+            --gradient-hero: linear-gradient(180deg, #0B0F1A 0%, #111827 50%, #0B0F1A 100%);
+            --shadow-glow: 0 0 60px rgba(108, 58, 224, 0.15);
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 16px 0;
+            background: rgba(11, 15, 26, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(108, 58, 224, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .navbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo span {
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-cta {
+            background: var(--gradient-1);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(108, 58, 224, 0.3);
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(108, 58, 224, 0.5);
+        }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 0 80px;
+            background: var(--gradient-hero);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(108, 58, 224, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
+            animation: heroGlow 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes heroGlow {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-5%, 5%) rotate(3deg); }
+        }
+
+        .hero .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(108, 58, 224, 0.15);
+            border: 1px solid rgba(108, 58, 224, 0.3);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--primary-light);
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .hero-badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10B981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .hero h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+
+        .hero h1 .highlight {
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero h1 .accent {
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-description {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 36px;
+            max-width: 560px;
+            line-height: 1.8;
+        }
+
+        .hero-cta-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--gradient-1);
+            color: #fff;
+            padding: 18px 40px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(108, 58, 224, 0.35);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(108, 58, 224, 0.5);
+        }
+
+        .hero-trust {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .hero-trust .item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hero-trust .item svg {
+            width: 16px;
+            height: 16px;
+            color: #10B981;
+        }
+
+        .hero-image-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .hero-image-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            background: var(--gradient-1);
+            border-radius: 30px;
+            opacity: 0.15;
+            filter: blur(40px);
+        }
+
+        .ebook-cover {
+            width: 100%;
+            max-width: 420px;
+            border-radius: 20px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(108, 58, 224, 0.2);
+            position: relative;
+            z-index: 1;
+            transition: transform 0.5s ease;
+        }
+
+        .ebook-cover:hover {
+            transform: translateY(-10px) rotate(-1deg);
+        }
+
+        /* ── STATS BAR ── */
+        .stats-bar {
+            padding: 60px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: rgba(20, 25, 41, 0.5);
+        }
+
+        .stats-bar .container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            text-align: center;
+        }
+
+        .stat-item .number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-item .label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ── METHOD SECTION ── */
+        .section {
+            padding: 100px 0;
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(108, 58, 224, 0.12);
+            border: 1px solid rgba(108, 58, 224, 0.25);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            line-height: 1.7;
+        }
+
+        /* Method Cards */
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 60px;
+        }
+
+        .method-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px 32px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .method-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .method-card:hover {
+            border-color: rgba(108, 58, 224, 0.3);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .method-card:hover::before {
+            opacity: 1;
+        }
+
+        .method-letter {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+
+        .method-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+
+        .method-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* ── MODULES SECTION ── */
+        .modules-section {
+            background: linear-gradient(180deg, var(--bg-dark) 0%, #0F1422 50%, var(--bg-dark) 100%);
+        }
+
+        .modules-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .modules-header .section-subtitle {
+            margin: 0 auto;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .module-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px 32px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card:hover {
+            border-color: rgba(108, 58, 224, 0.3);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .module-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary-light);
+            background: rgba(108, 58, 224, 0.12);
+            padding: 4px 14px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .module-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .module-card .module-subtitle {
+            font-size: 0.95rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .module-card p {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .module-card .module-topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .module-tag {
+            background: rgba(108, 58, 224, 0.08);
+            border: 1px solid rgba(108, 58, 224, 0.15);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        /* ── BONUS SECTION ── */
+        .bonus-section {
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .bonus-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.06) 0%, transparent 60%);
+        }
+
+        .bonus-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 24px;
+            padding: 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bonus-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-2);
+        }
+
+        .bonus-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .bonus-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .bonus-card > div > p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+
+        .bonus-features {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .bonus-feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .bonus-feature .check {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            background: rgba(16, 185, 129, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #10B981;
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+
+        .bonus-feature span {
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+
+        /* ── AUTHOR SECTION ── */
+        .author-section {
+            padding: 100px 0;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, #0F1422 50%, var(--bg-dark) 100%);
+        }
+
+        .author-card {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 60px;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px;
+        }
+
+        .author-image {
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .author-info h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .author-info p {
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+
+        .author-highlight {
+            background: rgba(108, 58, 224, 0.1);
+            border: 1px solid rgba(108, 58, 224, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        /* ── GUARANTEE SECTION ── */
+        .guarantee-section {
+            padding: 80px 0;
+        }
+
+        .guarantee-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 24px;
+            padding: 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .guarantee-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+        }
+
+        .guarantee-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .guarantee-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .guarantee-card p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 650px;
+            margin: 0 auto 32px;
+            line-height: 1.8;
+            position: relative;
+        }
+
+        .guarantee-tags {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 32px;
+            position: relative;
+        }
+
+        .guarantee-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .guarantee-tag svg {
+            width: 20px;
+            height: 20px;
+            color: #10B981;
+        }
+
+        /* ── FAQ SECTION ── */
+        .faq-section {
+            padding: 100px 0;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, #0F1422 50%, var(--bg-dark) 100%);
+        }
+
+        .faq-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .faq-header .section-subtitle {
+            margin: 0 auto;
+        }
+
+        .faq-list {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+            border-color: rgba(108, 58, 224, 0.2);
+        }
+
+        .faq-question {
+            padding: 24px 28px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .faq-question svg {
+            min-width: 20px;
+            width: 20px;
+            height: 20px;
+            color: var(--primary-light);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question svg {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 28px 24px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            display: none;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        /* ── FINAL CTA ── */
+        .final-cta {
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .final-cta::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(108, 58, 224, 0.1) 0%, transparent 50%);
+        }
+
+        .final-cta .container {
+            position: relative;
+        }
+
+        .final-cta h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .final-cta p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .final-cta .price {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 32px;
+        }
+
+        /* ── FOOTER ── */
+        .footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .hero .container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-description { margin-left: auto; margin-right: auto; }
+            .hero-cta-group { align-items: center; }
+            .hero-trust { justify-content: center; }
+
+            .hero-image-wrapper {
+                order: -1;
+                max-width: 350px;
+                margin: 0 auto;
+            }
+
+            .modules-grid { grid-template-columns: 1fr; }
+
+            .bonus-card {
+                grid-template-columns: 1fr;
+                padding: 40px;
+            }
+
+            .author-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .author-image {
+                max-width: 250px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-bar .container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .method-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bonus-card { padding: 32px 24px; }
+            .guarantee-card { padding: 40px 24px; }
+            .guarantee-tags { flex-direction: column; gap: 16px; align-items: center; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-bar .container {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .hero-trust {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+
+        /* ── ANIMATIONS ── */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── FLOATING PARTICLES ── */
+        .particles {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="#" class="logo">
+                <span>O ABC</span>das IAs
+            </a>
+            <a href="https://pay.hotmart.com/J106794155M" class="nav-cta">Garantir Meu Acesso</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="particles">
+            <div class="particle" style="left:10%; animation-duration:12s; animation-delay:0s;"></div>
+            <div class="particle" style="left:25%; animation-duration:15s; animation-delay:2s;"></div>
+            <div class="particle" style="left:45%; animation-duration:10s; animation-delay:4s;"></div>
+            <div class="particle" style="left:65%; animation-duration:14s; animation-delay:1s;"></div>
+            <div class="particle" style="left:80%; animation-duration:11s; animation-delay:3s;"></div>
+            <div class="particle" style="left:92%; animation-duration:13s; animation-delay:5s;"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    Ative seu modo Gestor Aumentado
+                </div>
+                <h1>
+                    Domine as Ferramentas de <span class="highlight">IA</span> que vão Transformar sua Produtividade e <span class="accent">Economizar Horas</span> na sua Rotina de Gestão.
+                </h1>
+                <p class="hero-description">
+                    Um guia prático, direto ao ponto e sem termos técnicos complicados. Aplique IA de forma simples na Direção, Administrativo, RH, Comercial, Marketing e Financeiro da sua empresa.
+                </p>
+                <div class="hero-cta-group">
+                    <a href="https://pay.hotmart.com/J106794155M" class="btn-primary">
+                        Quero Dominar a IA por apenas R$ 39,90
+                    </a>
+                </div>
+                <div class="hero-trust">
+                    <div class="item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+                        Acesso imediato
+                    </div>
+                    <div class="item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Compra 100% segura
+                    </div>
+                    <div class="item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Via Hotmart
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image-wrapper">
+                <img src="https://oabcdasias.lovable.app/__l5e/assets-v1/34ea9708-3128-4cbb-a0a2-619b6a5f99bc/ebook-cover.png" alt="Capa do e-book O ABC das IAs" class="ebook-cover">
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS BAR -->
+    <section class="stats-bar">
+        <div class="container">
+            <div class="stat-item fade-in">
+                <div class="number">7</div>
+                <div class="label">Módulos Práticos</div>
+            </div>
+            <div class="stat-item fade-in">
+                <div class="number">30+</div>
+                <div class="label">Prompts Prontos</div>
+            </div>
+            <div class="stat-item fade-in">
+                <div class="number">6</div>
+                <div class="label">Áreas da Empresa</div>
+            </div>
+            <div class="stat-item fade-in">
+                <div class="number">0</div>
+                <div class="label">Conhecimento Prévio Necessário</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- METHOD -->
+    <section class="section" id="metodo">
+        <div class="container">
+            <div class="section-label">Método</div>
+            <h2 class="section-title">A Tecnologia Desmistificada:<br>O Método ABC</h2>
+            <p class="section-subtitle">
+                Esqueça os manuais maçantes. Nosso método foi desenhado para deixar você completamente seguro para mergulhar, sem medo, no aprendizado.
+            </p>
+            <div class="method-grid">
+                <div class="method-card fade-in">
+                    <div class="method-letter">A</div>
+                    <h3>A — Aprendendo</h3>
+                    <p>Desvendamos os conceitos essenciais e você entende o que essas ferramentas realmente podem fazer por você, de forma simples e direta.</p>
+                </div>
+                <div class="method-card fade-in">
+                    <div class="method-letter">B</div>
+                    <h3>B — Brincando</h3>
+                    <p>O momento de perder o medo da tecnologia. Vamos testar, explorar caminhos e interagir com as plataformas de um jeito leve e divertido.</p>
+                </div>
+                <div class="method-card fade-in">
+                    <div class="method-letter">C</div>
+                    <h3>C — Construindo</h3>
+                    <p>A hora de colocar a mão na massa. Você verá como aplicar o conhecimento imediatamente para gerar resultados reais no seu dia a dia.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODULES -->
+    <section class="section modules-section" id="modulos">
+        <div class="container">
+            <div class="modules-header">
+                <div class="section-label">7 módulos práticos</div>
+                <h2 class="section-title">IA na Prática: A Metodologia do Gestor de Alta Performance</h2>
+                <p class="section-subtitle">
+                    Cada módulo é uma jornada focada em resultados, com exemplos reais e prompts prontos para aplicar imediatamente.
+                </p>
+            </div>
+            <div class="modules-grid">
+                <div class="module-card fade-in">
+                    <span class="module-number">Módulo 01</span>
+                    <h3>Direção e Gestão Estratégica</h3>
+                    <div class="module-subtitle">Da Intuição à Tomada de Decisão Baseada em Dados</div>
+                    <p>Transforme a IA no seu braço direito para análise de cenários, planejamento estratégico e gestão de riscos. Decisões mais inteligentes, com dados reais.</p>
+                    <div class="module-topics">
+                        <span class="module-tag">Análise de cenários</span>
+                        <span class="module-tag">Planejamento</span>
+                        <span class="module-tag">Gestão de riscos</span>
+                    </div>
+                </div>
+                <div class="module-card fade-in">
+                    <span class="module-number">Módulo 02</span>
+                    <h3>Administrativo — A Automação da Rotina</h3>
+                    <div class="module-subtitle">O Fim do Gargalo Operacional</div>
+                    <p>Otimize fluxos de trabalho, redija documentos técnicos e transforme processos manuais em tarefas delegadas a assistentes inteligentes.</p>
+                    <div class="module-topics">
+                        <span class="module-tag">Automação</span>
+                        <span class="module-tag">Documentos</span>
+                        <span class="module-tag">Fluxos de trabalho</span>
+                    </div>
+                </div>
+                <div class="module-card fade-in">
+                    <span class="module-number">Módulo 03</span>
+                    <h3>Recursos Humanos — IA a Serviço do Talento</h3>
+                    <div class="module-subtitle">Do Recrutamento à Retenção</div>
+                    <p>Agilize a triagem de currículos, estruture Planos de Desenvolvimento Individual (PDI) e automatize o onboarding de forma humanizada.</p>
+                    <div class="module-topics">
+                        <span class="module-tag">Recrutamento</span>
+                        <span class="module-tag">PDI</span>
+                        <span class="module-tag">Onboarding</span>
+                    </div>
+                </div>
+                <div class="module-card fade-in">
+                    <span class="module-number">Módulo 04</span>
+                    <h3>Comercial e Vendas</h3>
+                    <div class="module-subtitle">Inteligência para Fechar Negócios</div>
+                    <p>Utilize inteligência de mercado para qualificar leads, criar propostas comerciais persuasivas e antecipar objeções dos clientes.</p>
+                    <div class="module-topics">
+                        <span class="module-tag">Qualificação de leads</span>
+                        <span class="module-tag">Propostas</span>
+                        <span class="module-tag">Objeções</span>
+                    </div>
+                </div>
+                <div class="module-card fade-in">
+                    <span class="module-number">Módulo 05</span>
+                    <h3>Marketing — Criatividade em Escala</h3>
+                    <div class="module-subtitle">Conteúdo Multicanal sem Bloqueio</div>
+                    <p>Planeje campanhas, gere conteúdo para redes sociais, YouTube, Rumble e blog, e remova o bloqueio criativo de forma estratégica.</p>
+                    <div class="module-topics">
+                        <span class="module-tag">Redes sociais</span>
+                        <span class="module-tag">YouTube</span>
+                        <span class="module-tag">Blog</span>
+                    </div>
+                </div>
+                <div class="module-card fade-in">
+                    <span class="module-number">Módulo 06</span>
+                    <h3>Financeiro — Precisão Analítica</h3>
+                    <div class="module-subtitle">Da Gestão de Fluxo de Caixa ao Forecasting</div>
+                    <p>Automatize análises de planilhas e balancetes, preveja cenários econômicos e audite documentos com um analista 24/7.</p>
+                    <div class="module-topics">
+                        <span class="module-tag">Fluxo de caixa</span>
+                        <span class="module-tag">Forecasting</span>
+                        <span class="module-tag">Auditoria</span>
+                    </div>
+                </div>
+                <div class="module-card fade-in" style="grid-column: span 2; max-width: 590px; justify-self: center;">
+                    <span class="module-number">Módulo 07</span>
+                    <h3>Contabilidade — Conformidade e Segurança</h3>
+                    <div class="module-subtitle">O Contador na Era Digital</div>
+                    <p>Monitore alterações na legislação, organize obrigações acessórias com agilidade e garanta eficiência no planejamento tributário. Mantenha sua empresa sempre em conformidade com a legislação vigente.</p>
+                    <div class="module-topics">
+                        <span class="module-tag">Legislação</span>
+                        <span class="module-tag">Obrigações acessórias</span>
+                        <span class="module-tag">Planejamento tributário</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BONUS -->
+    <section class="bonus-section" id="bonus">
+        <div class="container">
+            <div class="section-label" style="display:flex; justify-content:center; margin: 0 auto 20px; width:fit-content;">Bônus Pro</div>
+            <div class="bonus-card fade-in">
+                <div>
+                    <div class="bonus-icon">🔥</div>
+                    <h3>O Grande Diferencial</h3>
+                    <p>Em cada módulo você recebe uma Biblioteca de Prompts "Copie & Cole" pronta para usar no ChatGPT, Gemini e Perplexity, além da "Dica de Ouro" para construir a memória inteligente do seu negócio utilizando o NotebookLM.</p>
+                </div>
+                <div class="bonus-features">
+                    <div class="bonus-feature">
+                        <span class="check">✓</span>
+                        <span>Biblioteca de Prompts para ChatGPT — copie e cole direto na conversa</span>
+                    </div>
+                    <div class="bonus-feature">
+                        <span class="check">✓</span>
+                        <span>Prompts otimizados para Gemini — extraia o máximo do Google AI</span>
+                    </div>
+                    <div class="bonus-feature">
+                        <span class="check">✓</span>
+                        <span>Comandos para Perplexity — pesquisa inteligente com fontes</span>
+                    </div>
+                    <div class="bonus-feature">
+                        <span class="check">✓</span>
+                        <span>Dica de Ouro com NotebookLM — construa a memória do seu negócio</span>
+                    </div>
+                    <div class="bonus-feature">
+                        <span class="check">✓</span>
+                        <span>Formato "Copie & Cole" — zero complicação, resultado imediato</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AUTHOR -->
+    <section class="author-section" id="autor">
+        <div class="container">
+            <div class="section-label">Quem vai te guiar</div>
+            <h2 class="section-title" style="margin-bottom: 40px;">Quem é José Costa?</h2>
+            <div class="author-card fade-in">
+                <img src="https://oabcdasias.lovable.app/__l5e/assets-v1/26b6fd66-85a2-4af6-9a7e-f61c2a50b7a0/author.png" alt="José Costa" class="author-image">
+                <div class="author-info">
+                    <h3>José Costa</h3>
+                    <p>Paraibano, 66 anos, administrador por formação, ex-aeroviário e empreendedor desde 1994. Consultor apaixonado por inovação e produtividade, vivenciou de perto a transformação digital com a chegada das IAs generativas.</p>
+                    <p>Como autodidata — e com apenas alguns cursos práticos de 8 horas na bagagem —, desenvolveu soluções GovTech reais que já estão no mercado (como o <strong>olagestorpb.com.br</strong>) e novos ecossistemas de gestão.</p>
+                    <div class="author-highlight">
+                        Criou o método <strong>"ABC das IAs"</strong> para provar que qualquer profissional, independente da idade, formação ou bagagem técnica, pode dominar o futuro do trabalho com leveza, criatividade e foco em resultados.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GUARANTEE -->
+    <section class="guarantee-section" id="garantia">
+        <div class="container">
+            <div class="guarantee-card fade-in">
+                <div class="guarantee-icon">🛡️</div>
+                <h3>Garantia Incondicional de 7 Dias</h3>
+                <p>Se por qualquer motivo você achar que o e-book não agregou valor à sua rotina de gestão, basta solicitar o reembolso na Hotmart em até 7 dias. Devolvemos 100% do seu dinheiro, sem burocracia.</p>
+                <a href="https://pay.hotmart.com/J106794155M" class="btn-primary">
+                    Quero Meu Acesso Imediato por R$ 39,90
+                </a>
+                <div class="guarantee-tags">
+                    <div class="guarantee-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+                        Acesso imediato
+                    </div>
+                    <div class="guarantee-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Pagamento seguro
+                    </div>
+                    <div class="guarantee-tag">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                        PDF em qualquer dispositivo
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section faq-section" id="faq">
+        <div class="container">
+            <div class="faq-header">
+                <div class="section-label">FAQ</div>
+                <h2 class="section-title">Perguntas Frequentes</h2>
+                <p class="section-subtitle">Tire suas dúvidas antes de garantir seu acesso.</p>
+            </div>
+            <div class="faq-list">
+                <div class="faq-item active">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Preciso saber programação ou tecnologia para aplicar o e-book?
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    <div class="faq-answer">
+                        Não! O método foi desenhado justamente para quem não entende de programação. Os comandos são em português claro, no formato "Copie & Cole".
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Como vou receber o material?
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    <div class="faq-answer">
+                        O acesso é imediato. Assim que o pagamento for aprovado pela Hotmart, você receberá o arquivo PDF diretamente no seu e-mail para ler no computador, tablet ou celular.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        As ferramentas apresentadas são pagas?
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    <div class="faq-answer">
+                        Não. Todas as estratégias do livro podem ser executadas utilizando as versões gratuitas do ChatGPT, Gemini, Perplexity e NotebookLM.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Funciona para qualquer tipo de empresa?
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    <div class="faq-answer">
+                        Sim! O método é universal. Seja você gestor de uma empresa pequena, média ou grande, nas áreas de Direção, Administrativo, RH, Comercial, Marketing ou Financeiro — o conteúdo se adapta à sua realidade.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Posso aplicar com minha equipe?
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    <div class="faq-answer">
+                        Com certeza! O conteúdo é pensado para gestores, mas os prompts e metodologias podem ser compartilhados e aplicados por toda a equipe de forma colaborativa.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <h2>Prato para transformar sua gestão?</h2>
+            <p>Comece hoje a usar Inteligência Artificial como sua aliada estratégica. Acesso imediato, pagamento seguro e garantia de 7 dias.</p>
+            <div class="price">R$ 39,90</div>
+            <a href="https://pay.hotmart.com/J106794155M" class="btn-primary" style="font-size: 1.2rem; padding: 20px 50px;">
+                Garantir Meu Acesso Agora
+            </a>
+            <p style="margin-top: 16px; font-size: 0.85rem; color: var(--text-muted);">Compra 100% segura • Processado pela Hotmart</p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <p><strong>José Costa</strong> • Contato para Mentorias e Suporte: <a href="mailto:josecostapb@gmail.com">josecostapb@gmail.com</a></p>
+            <p style="margin-top: 8px;">© 2026 O ABC das IAs. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // FAQ Toggle
+        function toggleFaq(el) {
+            const item = el.parentElement;
+            const wasActive = item.classList.contains('active');
+            
+            document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+            
+            if (!wasActive) {
+                item.classList.add('active');
+            }
+        }
+
+        // Fade-in on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.padding = '10px 0';
+                navbar.style.background = 'rgba(11, 15, 26, 0.95)';
+            } else {
+                navbar.style.padding = '16px 0';
+                navbar.style.background = 'rgba(11, 15, 26, 0.85)';
+            }
+        });
+    </script>
+</body>
+</html>
