@@ -52,7 +52,7 @@ nav button{background:none;border:none;font:inherit;font-size:.88rem;font-weight
 nav .nav-ico{display:none}
 nav button:hover{color:var(--ink)}
 nav button.active{color:var(--brand);border-bottom-color:var(--brand)}
-nav a{background:none;border:none;font:inherit;font-size:.88rem;font-weight:600;color:var(--brand);padding:10px 14px 12px;border-bottom:3px solid var(--brand);white-space:nowrap;text-decoration:none;cursor:pointer}
+nav a{background:none;border:none;font:inherit;font-size:.88rem;font-weight:600;color:var(--brand);padding:10px 14px 12px;border-bottom:3px solid transparent;white-space:nowrap;text-decoration:none;cursor:pointer}
 nav a:hover{color:var(--brand-dark);border-bottom-color:var(--brand-dark);background:var(--brand-soft)}
 main{max-width:1240px;margin:0 auto;padding:24px 20px 80px}
 section{display:none}
@@ -170,8 +170,9 @@ html{-webkit-text-size-adjust:100%}
   nav button{flex:1;min-width:0;padding:9px 2px 8px;font-size:.62rem;font-weight:700;letter-spacing:-.2px;border-bottom:none;border-top:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.15;text-align:center}
   nav button .nav-ico{font-size:1.05rem;line-height:1;display:block}
   nav button.active{border-bottom-color:transparent;border-top-color:var(--brand);color:var(--brand)}
-  nav a{flex:1;min-width:0;padding:9px 2px 8px;font-size:.62rem;font-weight:700;letter-spacing:-.2px;border-bottom:none;border-top:3px solid var(--brand);display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.15;text-align:center;color:var(--brand);text-decoration:none}
+  nav a{flex:1;min-width:0;padding:9px 2px 8px;font-size:.62rem;font-weight:700;letter-spacing:-.2px;border-bottom:none;border-top:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.15;text-align:center;color:var(--brand);text-decoration:none}
   nav a .nav-ico{font-size:1.05rem;line-height:1;display:block}
+  nav a:active{color:var(--brand);border-top-color:var(--brand);background:var(--brand-soft)}
   main{padding:16px 12px calc(96px + env(safe-area-inset-bottom,0px))}
   .page-head{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:16px}
   .page-head .btn{justify-content:center;min-height:44px}
